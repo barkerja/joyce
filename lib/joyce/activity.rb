@@ -3,30 +3,32 @@ require 'active_record'
 module Joyce
   class Activity < ActiveRecord::Base
     self.table_name = 'joyce_activities'
-    
+
     belongs_to :actor, :polymorphic => true
     belongs_to :obj, :polymorphic => true
     has_and_belongs_to_many :streams, :join_table => "joyce_activities_streams"
     has_many :activity_targets, :dependent => :delete_all
-    
+
+    attr_accessible :actor, :verb, :obj
+
     validates_presence_of :actor, :verb
-    
+
     extend Joyce::Scopes
     default_scope order("joyce_activities.created_at DESC")
-    
+
     # Returns an array of targets for the given name.
-    # 
+    #
     # @return [Array] the targets for the given name.
     def get_targets(name=:target)
       ActivityTarget.where(:name => name, :activity_id => id).map{ |at| at.target }
     end
-    
+
     # Sets the activity targets.
-    # 
+    #
     # @param [Hash] targets a Hash of type `{ :name => target }`.
     def set_targets(targets)
       raise ArgumentError.new("Parameter for set_targets should be a hash of type {:name => target}") unless targets.is_a?(Hash)
-      
+
       targets.each do |name, target|
         if target.is_a?(Array)
           target.each do |t|
@@ -37,17 +39,17 @@ module Joyce
         end
       end
     end
-    
+
     def verb=(value)
       verb_value = value.nil? ? nil : value.to_s
       write_attribute(:verb, verb_value)
     end
-    
+
     def verb
       verb_value = read_attribute(:verb)
       verb_value.nil? ? nil : verb_value.constantize
     end
-    
+
     # Returns subscribers for this activity.
     def subscribers
       subscriptions = Joyce::StreamSubscriber
