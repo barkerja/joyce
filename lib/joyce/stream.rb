@@ -10,7 +10,7 @@ module Joyce
 
     validates_presence_of :owner_type
 
-    attr_accessible :owner_type
+    attr_accessible :owner_type, :owner_id
 
     def self.default(params)
       new params
